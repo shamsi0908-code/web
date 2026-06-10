@@ -1,0 +1,115 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  CLIENT
+  MASTER
+  ADMIN
+}
+
+enum OrderStatus {
+  PENDING
+  ACCEPTED
+  COMPLETED
+  CANCELLED
+}
+
+model User {
+  id             String         @id @default(uuid())
+  email          String         @unique
+  password       String         // Simple hashed/encrypted password for demo
+  name           String
+  phone          String
+  role           Role           @default(CLIENT)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  masterProfile  MasterProfile?
+  clientOrders   Order[]        @relation("ClientOrders")
+  reviewsWritten Review[]       @relation("ClientReviews")
+}
+
+model MasterProfile {
+  id              String            @id @default(uuid())
+  userId          String            @unique
+  user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  description     String
+  age             Int
+  experienceYears Int
+  basePrice       Float             // Starting price for call out
+  rating          Float             @default(0.0)
+  ordersCount     Int               @default(0)
+  reviewsCount    Int               @default(0)
+  districts       String[]          // e.g., ["Есиль", "Алматы", "Сарыарка", "Байконур", "Нура"]
+  certificates    String[]          // List of certificate URLs or text descriptions
+  categories      Category[]        @relation("MasterCategories")
+  portfolio       MasterPortfolio[]
+  orders          Order[]           @relation("MasterOrders")
+  reviews         Review[]          @relation("MasterReviews")
+  isVip           Boolean           @default(false)
+  searchPriority  Int               @default(0)
+}
+
+model Category {
+  id         String          @id @default(uuid())
+  name       String          // e.g. "Сантехники"
+  slug       String          @unique // e.g. "plumbers"
+  icon       String          // Lucide icon name or SVG path
+  imageUrl   String          // Premium illustration or photo path
+  masters    MasterProfile[] @relation("MasterCategories")
+  promotions Promotion[]
+}
+
+model Order {
+  id          String      @id @default(uuid())
+  clientId    String
+  client      User        @relation("ClientOrders", fields: [clientId], references: [id], onDelete: Cascade)
+  masterId    String
+  master      MasterProfile @relation("MasterOrders", fields: [masterId], references: [id], onDelete: Cascade)
+  status      OrderStatus @default(PENDING)
+  scheduledAt DateTime
+  address     String
+  description String
+  totalPrice  Float
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  review      Review?
+}
+
+model Review {
+  id              String        @id @default(uuid())
+  orderId         String        @unique
+  order           Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  clientId        String
+  client          User          @relation("ClientReviews", fields: [clientId], references: [id], onDelete: Cascade)
+  masterId        String
+  master          MasterProfile @relation("MasterReviews", fields: [masterId], references: [id], onDelete: Cascade)
+  text            String
+  rating          Int           // 1 to 5 stars
+  photoUrls       String[]      // Optional review photos
+  createdAt       DateTime      @default(now())
+}
+
+model MasterPortfolio {
+  id              String        @id @default(uuid())
+  masterProfileId String
+  masterProfile   MasterProfile @relation(fields: [masterProfileId], references: [id], onDelete: Cascade)
+  imageUrl        String
+  description     String
+}
+
+model Promotion {
+  id           String    @id @default(uuid())
+  title        String    // e.g. "Скидка 20% на вызов электрика"
+  description  String
+  discountText String    // e.g. "-20%"
+  categoryId   String?
+  category     Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  isActive     Boolean   @default(true)
+  expiresAt    DateTime?
+}
