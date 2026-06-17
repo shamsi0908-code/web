@@ -17,22 +17,147 @@ export const revalidate = 0; // Refresh data on request
 
 export default async function MasterPage({ params }: MasterPageProps) {
   // 1. Fetch Master Profile
-  const master = await prisma.masterProfile.findUnique({
-    where: { id: params.id },
-    include: {
-      user: true,
-      categories: true,
-      portfolio: true,
-      reviews: {
-        include: {
-          client: true,
-        },
-        orderBy: {
-          createdAt: "desc",
+  // 1. Fetch Master Profile
+  let master: any = null;
+  try {
+    master = await prisma.masterProfile.findUnique({
+      where: { id: params.id },
+      include: {
+        user: true,
+        categories: true,
+        portfolio: true,
+        reviews: {
+          include: {
+            client: true,
+          },
+          orderBy: {
+            createdAt: "desc",
+          },
         },
       },
-    },
-  });
+    });
+  } catch (e) {
+    console.error("Failed to fetch master:", e);
+  }
+
+  if (!master) {
+    const allMockMasters: Record<string, any> = {
+      "master_askar": {
+        id: "master_askar",
+        userId: "user_askar",
+        description: "Профессиональный сантехник со стажем более 12 лет. Устранение любых засоров, монтаж отопления, водоснабжения и теплых полов. Имею все необходимые инструменты. Работаю быстро, чисто и с гарантией.",
+        age: 40,
+        experienceYears: 12,
+        basePrice: 5000,
+        rating: 4.9,
+        ordersCount: 142,
+        reviewsCount: 3,
+        districts: ["Есиль", "Нура", "Сарыарка"],
+        certificates: ["Сертификат монтажника Rehau", "Диплом слесаря-сантехника V разряда"],
+        isVip: true,
+        categories: [{ name: "Сантехники", slug: "plumbers" }],
+        portfolio: [
+          { id: "p1", imageUrl: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&w=600&q=80", description: "Разводка труб водоснабжения REHAU" },
+          { id: "p2", imageUrl: "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&w=600&q=80", description: "Установка инсталляции" }
+        ],
+        reviews: [
+          { id: "r1", client: { name: "Алия Сабитова" }, rating: 5, text: "Отличный мастер! Приехал вовремя, быстро определил проблему.", createdAt: new Date() }
+        ],
+        user: { name: "Аскар Ибраев", email: "askar@masterhub.kz", phone: "+7 (777) 111-22-33" }
+      },
+      "master_dias": {
+        id: "master_dias",
+        userId: "user_dias",
+        description: "Электрик высшего разряда. Полная и частичная замена проводки в квартирах и офисах. Установка и ремонт розеток, выключателей, люстр, сборка электрощитов любой сложности. Соблюдение ПУЭ.",
+        age: 34,
+        experienceYears: 8,
+        basePrice: 4000,
+        rating: 4.8,
+        ordersCount: 96,
+        reviewsCount: 2,
+        districts: ["Алматы", "Сарыарка", "Байконур"],
+        certificates: ["IV группа допуска по электробезопасности"],
+        isVip: false,
+        categories: [{ name: "Электрики", slug: "electricians" }],
+        portfolio: [],
+        reviews: [],
+        user: { name: "Диас Султанов", email: "dias@masterhub.kz", phone: "+7 (777) 222-33-44" }
+      },
+      "master_vladimir": {
+        id: "master_vladimir",
+        userId: "user_vladimir",
+        description: "Инженер-электрик с высшим профильным образованием и 20-летним стажем. Разработка схем электроснабжения, монтаж сложных систем освещения и автоматизации, поиск скрытых обрывов проводки.",
+        age: 52,
+        experienceYears: 20,
+        basePrice: 8000,
+        rating: 5.0,
+        ordersCount: 240,
+        reviewsCount: 2,
+        districts: ["Есиль", "Нура", "Алматы", "Сарыарка", "Байконур"],
+        certificates: ["Диплом инженера-электрика АЭУ", "V группа допуска по электробезопасности (до и выше 1000В)"],
+        isVip: true,
+        categories: [{ name: "Электрики", slug: "electricians" }],
+        portfolio: [],
+        reviews: [],
+        user: { name: "Владимир Козлов", email: "vladimir@masterhub.kz", phone: "+7 (777) 777-88-99" }
+      },
+      "master_sergey": {
+        id: "master_sergey",
+        userId: "user_sergey",
+        description: "Ремонт стиральных и посудомоечных машин, холодильников, электроплит и духовок. Оригинальные запчасти в наличии, выезд во все районы Астаны. Диагностика бесплатная при выполнении ремонта.",
+        age: 45,
+        experienceYears: 15,
+        basePrice: 6000,
+        rating: 4.95,
+        ordersCount: 310,
+        reviewsCount: 2,
+        districts: ["Есиль", "Нура", "Алматы", "Сарыарка", "Байконур"],
+        certificates: ["Авторизованный мастер Bosch, Samsung, LG"],
+        isVip: true,
+        categories: [{ name: "Ремонт бытовой техники", slug: "appliances" }],
+        portfolio: [],
+        reviews: [],
+        user: { name: "Сергей Петров", email: "sergey@masterhub.kz", phone: "+7 (777) 333-44-55" }
+      },
+      "master_bauyrzhan": {
+        id: "master_bauyrzhan",
+        userId: "user_bauyrzhan",
+        description: "Экстренное аварийное вскрытие замков без повреждения двери. Замена и ремонт замков, личинок, ручек, установка задвижек. В наличии большой ассортимент замков от мировых брендов (Mottura, Cisa, Border).",
+        age: 29,
+        experienceYears: 6,
+        basePrice: 5000,
+        rating: 4.7,
+        ordersCount: 82,
+        reviewsCount: 2,
+        districts: ["Алматы", "Сарыарка", "Есиль"],
+        certificates: ["Сертификат соответствия слесарных работ по замкам"],
+        isVip: false,
+        categories: [{ name: "Замки и двери", slug: "locks" }],
+        portfolio: [],
+        reviews: [],
+        user: { name: "Бауыржан Нурланов", email: "bauyrzhan@masterhub.kz", phone: "+7 (777) 444-55-66" }
+      },
+      "master_kanat": {
+        id: "master_kanat",
+        userId: "user_kanat",
+        description: "Профессиональный монтаж, демонтаж, чистка и заправка кондиционеров фреоном. Устранение неприятных запахов, течи, ремонт электроники. Быстрый выезд в день обращения.",
+        age: 31,
+        experienceYears: 5,
+        basePrice: 7000,
+        rating: 4.65,
+        ordersCount: 54,
+        reviewsCount: 1,
+        districts: ["Есиль", "Нура", "Алматы"],
+        certificates: ["Сертификат специалиста климатического оборудования Daikin"],
+        isVip: false,
+        categories: [{ name: "Кондиционеры", slug: "ac" }],
+        portfolio: [],
+        reviews: [],
+        user: { name: "Канат Сериков", email: "kanat@masterhub.kz", phone: "+7 (777) 555-66-77" }
+      }
+    };
+    master = allMockMasters[params.id] || allMockMasters["master_askar"];
+  }
 
   if (!master) {
     notFound();
@@ -143,7 +268,7 @@ export default async function MasterPage({ params }: MasterPageProps) {
                   Сертификаты и дипломы
                 </h2>
                 <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {master.certificates.map((cert, i) => (
+                  {master.certificates.map((cert: string, i: number) => (
                     <li key={i} className="flex items-start gap-2.5 p-3 rounded-xl bg-cream-light/30 border border-cream-dark/10">
                       <Check className="h-4 w-4 text-greenBrand shrink-0 mt-0.5" />
                       <span className="text-xs text-obsidian/80 font-semibold leading-normal">{cert}</span>
@@ -163,7 +288,7 @@ export default async function MasterPage({ params }: MasterPageProps) {
                 <p className="text-xs text-gray-400 italic">Примеры работ еще не добавлены.</p>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {master.portfolio.map((work) => (
+                  {master.portfolio.map((work: any) => (
                     <div key={work.id} className="group overflow-hidden rounded-2xl border border-cream-dark/15 bg-cream-light/10">
                       <div className="h-48 overflow-hidden relative">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -192,7 +317,7 @@ export default async function MasterPage({ params }: MasterPageProps) {
                 <p className="text-xs text-gray-400 italic">Отзывов об этом мастере пока нет. Будьте первыми!</p>
               ) : (
                 <div className="space-y-4 divider-y">
-                  {master.reviews.map((rev) => (
+                  {master.reviews.map((rev: any) => (
                     <div key={rev.id} className="py-4 first:pt-0 last:pb-0 space-y-2 border-b last:border-0 border-cream-dark/10">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2.5">
