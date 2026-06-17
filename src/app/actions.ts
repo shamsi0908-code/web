@@ -294,3 +294,76 @@ export async function createPromotion(title: string, description: string, discou
   revalidatePath("/admin");
   return { success: true };
 }
+
+export async function createMaster({
+  name,
+  email,
+  phone,
+  categorySlug,
+  basePrice,
+  age,
+  experienceYears,
+  districts,
+  description,
+  certificates,
+}: {
+  name: string;
+  email: string;
+  phone: string;
+  categorySlug: string;
+  basePrice: number;
+  age: number;
+  experienceYears: number;
+  districts: string[];
+  description: string;
+  certificates: string[];
+}) {
+  const session = await getSession();
+  if (!session || session.role !== "ADMIN") {
+    throw new Error("Нет прав");
+  }
+
+  const existingUser = await prisma.user.findUnique({
+    where: { email },
+  });
+  if (existingUser) {
+    throw new Error("Пользователь с таким email уже существует");
+  }
+
+  const category = await prisma.category.findUnique({
+    where: { slug: categorySlug },
+  });
+  if (!category) {
+    throw new Error("Категория не найдена");
+  }
+
+  const user = await prisma.user.create({
+    data: {
+      email,
+      password: "masterpassword",
+      name,
+      phone,
+      role: "MASTER",
+    },
+  });
+
+  await prisma.masterProfile.create({
+    data: {
+      userId: user.id,
+      description: description || "Специалист по бытовым услугам",
+      age,
+      experienceYears,
+      basePrice,
+      districts: JSON.stringify(districts),
+      certificates: JSON.stringify(certificates),
+      isVip: false,
+      categories: {
+        connect: [{ id: category.id }],
+      },
+    },
+  });
+
+  revalidatePath("/", "layout");
+  return { success: true };
+}
+

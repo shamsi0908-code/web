@@ -40,6 +40,15 @@ export default async function MasterPage({ params }: MasterPageProps) {
     console.error("Failed to fetch master:", e);
   }
 
+  if (master) {
+    if (typeof master.districts === "string") {
+      try { master.districts = JSON.parse(master.districts); } catch (e) { master.districts = []; }
+    }
+    if (typeof master.certificates === "string") {
+      try { master.certificates = JSON.parse(master.certificates); } catch (e) { master.certificates = []; }
+    }
+  }
+
   if (!master) {
     const allMockMasters: Record<string, any> = {
       "master_askar": {

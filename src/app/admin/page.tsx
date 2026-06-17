@@ -3,7 +3,7 @@ import { getSession } from "@/lib/session";
 import Link from "next/link";
 import RatingStars from "@/components/RatingStars";
 import { 
-  deleteReview, togglePromotion, createPromotion 
+  deleteReview, togglePromotion, createPromotion, createMaster 
 } from "@/app/actions";
 import { 
   ShieldAlert, Users, Award, ClipboardList, Coins, 
@@ -92,6 +92,43 @@ export default async function AdminPage() {
     
     if (title && description && discountText) {
       await createPromotion(title, description, discountText, categoryId || undefined);
+    }
+  };
+
+  const handleCreateMaster = async (formData: FormData) => {
+    "use server";
+    const name = formData.get("name") as string;
+    const email = formData.get("email") as string;
+    const phone = formData.get("phone") as string;
+    const categorySlug = formData.get("categorySlug") as string;
+    const basePrice = parseFloat(formData.get("basePrice") as string) || 0;
+    const age = parseInt(formData.get("age") as string) || 30;
+    const experienceYears = parseInt(formData.get("experienceYears") as string) || 5;
+    const description = formData.get("description") as string;
+    
+    const districtsRaw = formData.get("districts") as string;
+    const districts = districtsRaw 
+      ? districtsRaw.split(",").map(d => d.trim()).filter(Boolean)
+      : ["Есиль", "Нура"];
+
+    const certificatesRaw = formData.get("certificates") as string;
+    const certificates = certificatesRaw 
+      ? certificatesRaw.split(",").map(c => c.trim()).filter(Boolean)
+      : [];
+
+    if (name && email && phone && categorySlug && basePrice > 0) {
+      await createMaster({
+        name,
+        email,
+        phone,
+        categorySlug,
+        basePrice,
+        age,
+        experienceYears,
+        districts,
+        description,
+        certificates,
+      });
     }
   };
 
@@ -245,6 +282,146 @@ export default async function AdminPage() {
 
           {/* Right: Promotions Management Sidebar (1 col) */}
           <div className="lg:col-span-1 space-y-6">
+
+            {/* Create Master Box */}
+            <div className="bg-white p-6 rounded-3xl border border-cream-dark/20 shadow-sm space-y-4">
+              <h3 className="font-bold text-obsidian text-sm border-b border-cream-dark/15 pb-3 flex items-center gap-1.5">
+                <Plus className="h-4 w-4 text-purpleBrand" />
+                Добавить нового мастера
+              </h3>
+              <form action={handleCreateMaster} className="space-y-3">
+                <div>
+                  <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">
+                    ФИО мастера *
+                  </label>
+                  <input
+                    type="text"
+                    name="name"
+                    required
+                    placeholder="Например: Марат Ахметов"
+                    className="w-full rounded-xl border-cream-dark/30 bg-cream-light/35 text-xs p-3 focus:outline-none focus:border-purpleBrand focus:bg-white border text-obsidian font-semibold"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">
+                    Email *
+                  </label>
+                  <input
+                    type="email"
+                    name="email"
+                    required
+                    placeholder="marat@mail.ru"
+                    className="w-full rounded-xl border-cream-dark/30 bg-cream-light/35 text-xs p-3 focus:outline-none focus:border-purpleBrand focus:bg-white border text-obsidian font-semibold"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">
+                    Телефон *
+                  </label>
+                  <input
+                    type="text"
+                    name="phone"
+                    required
+                    placeholder="+7 (701) 222-33-44"
+                    className="w-full rounded-xl border-cream-dark/30 bg-cream-light/35 text-xs p-3 focus:outline-none focus:border-purpleBrand focus:bg-white border text-obsidian font-semibold"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">
+                      Стоимость выезда (₸) *
+                    </label>
+                    <input
+                      type="number"
+                      name="basePrice"
+                      required
+                      placeholder="5000"
+                      className="w-full rounded-xl border-cream-dark/30 bg-cream-light/35 text-xs p-3 focus:outline-none focus:border-purpleBrand focus:bg-white border text-obsidian font-bold text-center"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">
+                      Категория *
+                    </label>
+                    <select
+                      name="categorySlug"
+                      required
+                      className="w-full rounded-xl border-cream-dark/30 bg-cream-light/35 text-xs p-3 focus:outline-none focus:border-purpleBrand focus:bg-white border text-obsidian font-bold"
+                    >
+                      {categories.map((c) => (
+                        <option key={c.id} value={c.slug}>
+                          {c.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">
+                      Возраст
+                    </label>
+                    <input
+                      type="number"
+                      name="age"
+                      defaultValue={30}
+                      className="w-full rounded-xl border-cream-dark/30 bg-cream-light/35 text-xs p-3 focus:outline-none focus:border-purpleBrand focus:bg-white border text-obsidian font-bold text-center"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">
+                      Стаж работы (лет)
+                    </label>
+                    <input
+                      type="number"
+                      name="experienceYears"
+                      defaultValue={5}
+                      className="w-full rounded-xl border-cream-dark/30 bg-cream-light/35 text-xs p-3 focus:outline-none focus:border-purpleBrand focus:bg-white border text-obsidian font-bold text-center"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">
+                    Районы работы (через запятую)
+                  </label>
+                  <input
+                    type="text"
+                    name="districts"
+                    defaultValue="Есиль, Нура, Сарыарка"
+                    placeholder="Есиль, Нура, Сарыарка..."
+                    className="w-full rounded-xl border-cream-dark/30 bg-cream-light/35 text-xs p-3 focus:outline-none focus:border-purpleBrand focus:bg-white border text-obsidian font-semibold"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">
+                    Сертификаты (через запятую)
+                  </label>
+                  <input
+                    type="text"
+                    name="certificates"
+                    placeholder="Сертификат Rehau, Диплом V разряда..."
+                    className="w-full rounded-xl border-cream-dark/30 bg-cream-light/35 text-xs p-3 focus:outline-none focus:border-purpleBrand focus:bg-white border text-obsidian font-semibold"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">
+                    Описание
+                  </label>
+                  <textarea
+                    name="description"
+                    placeholder="Опишите навыки, виды услуг..."
+                    rows={2}
+                    className="w-full rounded-xl border-cream-dark/30 bg-cream-light/35 text-xs p-3 focus:outline-none focus:border-purpleBrand focus:bg-white border text-obsidian font-semibold resize-none"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  className="w-full bg-purpleBrand text-white text-xs font-bold py-2.5 rounded-xl hover:bg-purpleBrand-hover"
+                >
+                  Добавить мастера
+                </button>
+              </form>
+            </div>
             
             {/* Create Promo Box */}
             <div className="bg-white p-6 rounded-3xl border border-cream-dark/20 shadow-sm space-y-4">

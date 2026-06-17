@@ -58,6 +58,15 @@ export default async function MasterDashboardPage() {
     },
   });
 
+  if (master) {
+    if (typeof master.districts === "string") {
+      try { master.districts = JSON.parse(master.districts); } catch (e) { master.districts = []; }
+    }
+    if (typeof master.certificates === "string") {
+      try { master.certificates = JSON.parse(master.certificates); } catch (e) { master.certificates = []; }
+    }
+  }
+
   if (!master) {
     return (
       <div className="bg-cream-light/30 min-h-screen py-20 flex flex-col items-center justify-center">

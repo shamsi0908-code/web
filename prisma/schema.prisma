@@ -1,23 +1,10 @@
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
 generator client {
   provider = "prisma-client-js"
-}
-
-enum Role {
-  CLIENT
-  MASTER
-  ADMIN
-}
-
-enum OrderStatus {
-  PENDING
-  ACCEPTED
-  COMPLETED
-  CANCELLED
 }
 
 model User {
@@ -26,7 +13,7 @@ model User {
   password       String         // Simple hashed/encrypted password for demo
   name           String
   phone          String
-  role           Role           @default(CLIENT)
+  role           String         @default("CLIENT")
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
   masterProfile  MasterProfile?
@@ -45,8 +32,8 @@ model MasterProfile {
   rating          Float             @default(0.0)
   ordersCount     Int               @default(0)
   reviewsCount    Int               @default(0)
-  districts       String[]          // e.g., ["Есиль", "Алматы", "Сарыарка", "Байконур", "Нура"]
-  certificates    String[]          // List of certificate URLs or text descriptions
+  districts       String            @default("[]") // Store as JSON string or comma-separated string
+  certificates    String            @default("[]") // Store as JSON string or comma-separated string
   categories      Category[]        @relation("MasterCategories")
   portfolio       MasterPortfolio[]
   orders          Order[]           @relation("MasterOrders")
@@ -71,7 +58,7 @@ model Order {
   client      User        @relation("ClientOrders", fields: [clientId], references: [id], onDelete: Cascade)
   masterId    String
   master      MasterProfile @relation("MasterOrders", fields: [masterId], references: [id], onDelete: Cascade)
-  status      OrderStatus @default(PENDING)
+  status      String      @default("PENDING")
   scheduledAt DateTime
   address     String
   description String
@@ -91,7 +78,7 @@ model Review {
   master          MasterProfile @relation("MasterReviews", fields: [masterId], references: [id], onDelete: Cascade)
   text            String
   rating          Int           // 1 to 5 stars
-  photoUrls       String[]      // Optional review photos
+  photoUrls       String        @default("[]") // Optional review photos
   createdAt       DateTime      @default(now())
 }
 

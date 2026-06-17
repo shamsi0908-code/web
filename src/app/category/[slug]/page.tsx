@@ -62,7 +62,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
 
     if (district) {
       where.districts = {
-        has: district,
+        contains: district,
       };
     }
 
@@ -84,7 +84,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
       };
     }
 
-    masters = await prisma.masterProfile.findMany({
+    const dbMasters = await prisma.masterProfile.findMany({
       where,
       include: {
         user: {
@@ -100,6 +100,22 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
         { searchPriority: "desc" },
         { rating: "desc" },
       ],
+    });
+
+    masters = dbMasters.map((m: any) => {
+      let parsedDistricts = [];
+      let parsedCertificates = [];
+      try {
+        parsedDistricts = typeof m.districts === "string" ? JSON.parse(m.districts) : m.districts;
+      } catch (e) {}
+      try {
+        parsedCertificates = typeof m.certificates === "string" ? JSON.parse(m.certificates) : m.certificates;
+      } catch (e) {}
+      return {
+        ...m,
+        districts: Array.isArray(parsedDistricts) ? parsedDistricts : [],
+        certificates: Array.isArray(parsedCertificates) ? parsedCertificates : [],
+      };
     });
   } catch (e) {
     console.error("Failed to fetch masters:", e);
