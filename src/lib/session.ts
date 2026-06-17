@@ -9,11 +9,11 @@ export interface SessionData {
 }
 
 export async function getSession(): Promise<SessionData | null> {
-  const cookieStore = cookies();
-  const sessionCookie = cookieStore.get("demo_session");
-  if (!sessionCookie) return null;
-
   try {
+    const cookieStore = cookies();
+    const sessionCookie = cookieStore.get("demo_session");
+    if (!sessionCookie) return null;
+
     const data = JSON.parse(sessionCookie.value) as SessionData;
     // Verify user still exists in DB
     const user = await prisma.user.findUnique({
