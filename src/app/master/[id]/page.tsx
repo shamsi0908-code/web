@@ -382,17 +382,13 @@ export default async function MasterPage({ params }: MasterPageProps) {
                   masterId={master.id}
                   masterName={master.user.name}
                   basePrice={master.basePrice}
-                  isClient={isClient}
+                  isLoggedIn={!!session}
                 />
-                {!session ? (
+                {!session && (
                   <p className="text-[10px] text-gray-500 text-center font-medium mt-3">
-                    Пожалуйста, <Link href="/auth/login" className="text-purpleBrand font-bold hover:underline">войдите в систему</Link> под учетной записью клиента, чтобы заказать услуги этого мастера.
+                    Пожалуйста, <Link href="/auth/login" className="text-purpleBrand font-bold hover:underline">войдите в систему</Link>, чтобы заказать услуги этого мастера.
                   </p>
-                ) : !isClient ? (
-                  <p className="text-[10px] text-gray-500 text-center font-medium mt-3">
-                    Вы вошли как специалист. Заказ услуг доступен только для клиентов.
-                  </p>
-                ) : null}
+                )}
               </div>
 
             </div>

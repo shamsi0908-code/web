@@ -8,10 +8,10 @@ interface BookingFormProps {
   masterId: string;
   masterName: string;
   basePrice: number;
-  isClient: boolean;
+  isLoggedIn: boolean;
 }
 
-export default function BookingForm({ masterId, masterName, basePrice, isClient }: BookingFormProps) {
+export default function BookingForm({ masterId, masterName, basePrice, isLoggedIn }: BookingFormProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [isPending, startTransition] = useTransition();
@@ -60,8 +60,9 @@ export default function BookingForm({ masterId, masterName, basePrice, isClient 
     <>
       <button
         onClick={() => {
-          if (!isClient) {
-            alert("Пожалуйста, выберите демо-роль 'Заказчик (Клиент)' в правом верхнем углу для создания заказа.");
+          if (!isLoggedIn) {
+            alert("Пожалуйста, войдите в систему под учетной записью для создания заказа.");
+            window.location.href = "/auth/login";
             return;
           }
           setIsOpen(true);
