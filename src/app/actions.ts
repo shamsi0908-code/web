@@ -13,13 +13,13 @@ export async function loginAs(email: string) {
     throw new Error("User not found");
   }
   await setSession(user.id);
-  revalidatePath("/");
+  revalidatePath("/", "layout");
   return { success: true };
 }
 
 export async function logout() {
   await clearSession();
-  revalidatePath("/");
+  revalidatePath("/", "layout");
   return { success: true };
 }
 
@@ -364,6 +364,95 @@ export async function createMaster({
   });
 
   revalidatePath("/", "layout");
+  revalidatePath("/admin");
   return { success: true };
 }
+
+// 6. Real Authentication Actions
+export async function loginUser({ email, password }: { email: string; password?: string }) {
+  const user = await prisma.user.findUnique({
+    where: { email },
+  });
+  if (!user) {
+    throw new Error("Пользователь с таким email не найден");
+  }
+  if (password && user.password !== password) {
+    throw new Error("Неверный пароль");
+  }
+  await setSession(user.id);
+  revalidatePath("/", "layout");
+  return { success: true };
+}
+
+export async function registerUser({
+  name,
+  email,
+  phone,
+  password,
+  role,
+  categorySlug,
+  basePrice,
+  experienceYears,
+  description,
+}: {
+  name: string;
+  email: string;
+  phone: string;
+  password?: string;
+  role: "CLIENT" | "MASTER";
+  categorySlug?: string;
+  basePrice?: number;
+  experienceYears?: number;
+  description?: string;
+}) {
+  const existingUser = await prisma.user.findUnique({
+    where: { email },
+  });
+  if (existingUser) {
+    throw new Error("Пользователь с таким email уже существует");
+  }
+
+  const user = await prisma.user.create({
+    data: {
+      email,
+      password: password || "password",
+      name,
+      phone,
+      role,
+    },
+  });
+
+  if (role === "MASTER") {
+    if (!categorySlug) {
+      throw new Error("Необходимо выбрать категорию для специалиста");
+    }
+    const category = await prisma.category.findUnique({
+      where: { slug: categorySlug },
+    });
+    if (!category) {
+      throw new Error("Категория не найдена");
+    }
+
+    await prisma.masterProfile.create({
+      data: {
+        userId: user.id,
+        description: description || "Специалист по бытовым услугам",
+        age: 30,
+        experienceYears: experienceYears || 3,
+        basePrice: basePrice || 3000,
+        districts: JSON.stringify(["Есиль", "Нура", "Сарыарка"]),
+        certificates: JSON.stringify([]),
+        isVip: false,
+        categories: {
+          connect: [{ id: category.id }],
+        },
+      },
+    });
+  }
+
+  await setSession(user.id);
+  revalidatePath("/", "layout");
+  return { success: true };
+}
+
 

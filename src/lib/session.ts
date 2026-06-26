@@ -24,7 +24,7 @@ export async function getSession(): Promise<SessionData | null> {
 
     return {
       userId: user.id,
-      role: user.role,
+      role: user.role as "CLIENT" | "MASTER" | "ADMIN",
       name: user.name,
       email: user.email,
     };

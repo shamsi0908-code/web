@@ -23,14 +23,22 @@ export default async function MasterDashboardPage() {
           <ShieldAlert className="h-12 w-12 text-greenBrand mx-auto" />
           <h1 className="text-xl font-bold text-obsidian">Доступ ограничен</h1>
           <p className="text-xs text-gray-500 font-medium leading-relaxed">
-            Пожалуйста, выберите демо-роль <span className="font-semibold text-greenBrand">Мастер</span> в панели демо-аккаунта в правом верхнем углу сайта для просмотра этого кабинета.
+            Пожалуйста, <Link href="/auth/login" className="text-purpleBrand font-bold hover:underline">войдите в систему</Link> под учетной записью с ролью <span className="font-semibold text-greenBrand">Мастер</span> для просмотра этого кабинета.
           </p>
-          <Link
-            href="/"
-            className="inline-block px-6 py-2.5 bg-obsidian text-cream hover:bg-obsidian-light text-xs font-bold rounded-xl transition-all"
-          >
-            На главную
-          </Link>
+          <div className="flex justify-center gap-3">
+            <Link
+              href="/auth/login"
+              className="inline-block px-6 py-2.5 bg-greenBrand text-white hover:bg-greenBrand-hover text-xs font-bold rounded-xl transition-all"
+            >
+              Войти
+            </Link>
+            <Link
+              href="/"
+              className="inline-block px-6 py-2.5 bg-obsidian text-cream hover:bg-obsidian-light text-xs font-bold rounded-xl transition-all"
+            >
+              На главную
+            </Link>
+          </div>
         </div>
       </div>
     );

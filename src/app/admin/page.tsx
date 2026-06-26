@@ -1,5 +1,7 @@
 import { prisma } from "@/lib/db";
 import { getSession } from "@/lib/session";
+import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 import Link from "next/link";
 import RatingStars from "@/components/RatingStars";
 import { 
@@ -23,14 +25,22 @@ export default async function AdminPage() {
           <ShieldAlert className="h-12 w-12 text-red-600 mx-auto" />
           <h1 className="text-xl font-bold text-obsidian">Доступ ограничен</h1>
           <p className="text-xs text-gray-500 font-medium leading-relaxed">
-            Пожалуйста, выберите демо-роль <span className="font-semibold text-red-600">Администратор</span> в панели демо-аккаунта в правом верхнем углу сайта для просмотра этого кабинета.
+            Пожалуйста, <Link href="/auth/login" className="text-purpleBrand font-bold hover:underline">войдите в систему</Link> под учетной записью с ролью <span className="font-semibold text-red-600">Администратор</span> для просмотра этого кабинета.
           </p>
-          <Link
-            href="/"
-            className="inline-block px-6 py-2.5 bg-obsidian text-cream hover:bg-obsidian-light text-xs font-bold rounded-xl transition-all"
-          >
-            На главную
-          </Link>
+          <div className="flex justify-center gap-3">
+            <Link
+              href="/auth/login"
+              className="inline-block px-6 py-2.5 bg-purpleBrand text-white hover:bg-purpleBrand-hover text-xs font-bold rounded-xl transition-all"
+            >
+              Войти
+            </Link>
+            <Link
+              href="/"
+              className="inline-block px-6 py-2.5 bg-obsidian text-cream hover:bg-obsidian-light text-xs font-bold rounded-xl transition-all"
+            >
+              На главную
+            </Link>
+          </div>
         </div>
       </div>
     );
@@ -75,12 +85,16 @@ export default async function AdminPage() {
     const isActiveStr = formData.get("isActive") as string;
     const isActive = isActiveStr === "true";
     await togglePromotion(promoId, !isActive);
+    revalidatePath("/admin");
+    redirect("/admin");
   };
 
   const handleDeleteReview = async (formData: FormData) => {
     "use server";
     const reviewId = formData.get("reviewId") as string;
     await deleteReview(reviewId);
+    revalidatePath("/admin");
+    redirect("/admin");
   };
 
   const handleCreatePromo = async (formData: FormData) => {
@@ -93,6 +107,8 @@ export default async function AdminPage() {
     if (title && description && discountText) {
       await createPromotion(title, description, discountText, categoryId || undefined);
     }
+    revalidatePath("/admin");
+    redirect("/admin");
   };
 
   const handleCreateMaster = async (formData: FormData) => {
@@ -130,6 +146,8 @@ export default async function AdminPage() {
         certificates,
       });
     }
+    revalidatePath("/admin");
+    redirect("/admin");
   };
 
   return (
